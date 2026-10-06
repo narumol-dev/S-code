@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>S-CODE : นักวิทย์น้อยคิดเป็นโค้ด</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,"Noto Sans Thai",sans-serif;background:#eef8ff;color:#17324d}
+header{background:linear-gradient(135deg,#1267b1,#42b883);color:#fff;padding:18px;text-align:center}
+h1{margin:0;font-size:clamp(28px,5vw,48px)} header p{margin:5px 0;font-size:18px}
+.wrap{max-width:1100px;margin:auto;padding:16px}.top{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:15px}
+.badge{background:#fff;border-radius:14px;padding:10px 16px;box-shadow:0 2px 8px #0001;font-weight:700}
+.panel{background:#fff;border-radius:20px;padding:18px;box-shadow:0 5px 18px #00000012;margin-bottom:16px}
+h2{margin-top:0}.mission{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+button{border:0;border-radius:15px;padding:12px 15px;font-size:16px;font-weight:700;cursor:pointer;background:#e8f2ff;color:#17324d}
+button:hover{transform:translateY(-1px)}button.selected{outline:4px solid #ffd54a;background:#fff7cf}
+button.correct{background:#c8f7d5}.small{font-size:13px;font-weight:500}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px}
+.card{background:#fff;border:2px solid #d7e8f5;border-radius:16px;padding:10px;text-align:center;min-height:105px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer}
+.card .emoji{font-size:44px}.card span{font-weight:700}.card.selected{border-color:#ffbd2e;background:#fff9dd;box-shadow:0 0 0 3px #ffdc72}
+.command{display:inline-flex;align-items:center;justify-content:center;min-width:82px;min-height:72px;margin:5px;border:2px solid #cbdbea;background:#f8fbff;border-radius:15px;cursor:pointer;font-size:30px}
+.command span{display:block;font-size:12px}.command.selected{border-color:#ffb300;background:#fff6cc}
+.sequence{min-height:95px;border:3px dashed #b9d2e5;border-radius:16px;padding:8px;text-align:center}
+.seqitem{display:inline-flex;align-items:center;justify-content:center;flex-direction:column;width:74px;height:72px;background:#eaf5ff;border-radius:12px;margin:4px;font-size:26px}.seqitem small{font-size:11px}
+.grid{display:grid;grid-template-columns:repeat(4,60px);gap:5px;justify-content:center;margin:12px}.cell{width:60px;height:60px;background:#f4fbff;border:2px solid #c8dfef;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:30px}.player{background:#ffe58a!important}
+.notice{text-align:center;padding:12px;border-radius:12px;background:#f1f7ff;font-weight:700}.hidden{display:none}
+footer{text-align:center;padding:15px;color:#557}
+@media(max-width:500px){.grid{grid-template-columns:repeat(4,48px)}.cell{width:48px;height:48px;font-size:24px}.command{min-width:65px}}
+</style>
+</head>
+<body>
+<header><h1>🧪 S-CODE</h1><p>นักวิทย์น้อยคิดเป็นโค้ด</p><div>สังเกต • จำแนก • เรียงลำดับ • ลงมือทำ • ตรวจสอบผล</div></header>
+<div class="wrap">
+<div class="top"><div class="badge">⭐ คะแนน <span id="score">0</span></div><div class="badge">🏆 ระดับ <span id="level">1</span></div><div class="badge">🎯 ภารกิจ <span id="mnum">1</span>/5</div></div>
+
+<div class="panel" id="missionPanel">
+<h2 id="title">ภารกิจ 1 : นักสังเกตตัวจิ๋ว 👀</h2>
+<p id="question">เลือก “สัตว์” ทั้งหมดจากบัตรภาพ แล้วกดตรวจคำตอบ</p>
+<div class="cards" id="cards"></div>
+<br><button onclick="checkClassification()">✅ ตรวจคำตอบ</button>
+<button onclick="nextMission()" id="nextBtn" class="hidden">➡️ ภารกิจต่อไป</button>
+<div class="notice" id="feedback">เลือกบัตรภาพที่คิดว่าถูกต้อง</div>
+</div>
+
+<div class="panel">
+<h2>🧩 บัตรคำสั่ง Coding</h2>
+<p class="small">กดบัตรคำสั่งเพื่อสร้างโค้ดของเรา</p>
+<div id="commands" style="text-align:center"></div>
+<div class="sequence" id="sequence"><span class="small">โค้ดที่เลือกจะปรากฏตรงนี้</span></div>
+<br><button onclick="clearCode()">🗑️ ล้างโค้ด</button>
+<button onclick="runCode()">▶️ ทดลองโค้ด</button>
+<div class="notice" id="codeFeedback">ภารกิจเดินทางจะใช้บัตร ➡️ ⬆️ ⬇️ ⬅️</div>
+</div>
+
+<div class="panel">
+<h2>🗺️ กระดานเกม 4 × 4</h2>
+<p style="text-align:center">ภารกิจ: พานักวิทย์ 👩‍🔬 ไปหาแหล่งกำเนิดแสง 🔦</p>
+<div class="grid" id="grid"></div>
+<p class="small" style="text-align:center">เส้นทางตัวอย่าง: ➡️ ➡️ ⬆️ ⬆️ ➡️</p>
+</div>
+
+<div class="panel">
+<h2>🌱 ภารกิจโบนัส : เรียงการเจริญเติบโตของพืช</h2>
+<p>กดบัตรภาพตามลำดับที่ถูกต้อง: เมล็ด → เมล็ดงอก → ต้นอ่อน → ต้นไม้</p>
+<div class="cards" id="plantCards"></div>
+<button onclick="checkPlants()">🌟 ตรวจลำดับ</button>
+<div class="notice" id="plantFeedback">เริ่มเรียงบัตรภาพได้เลย</div>
+</div>
+</div>
+<footer>S-CODE : เกมวิทยาศาสตร์และ Unplugged Coding สำหรับนักเรียนระดับประถมศึกษา</footer>
+
+<script>
+const data=[
+ {emoji:"🐟",name:"ปลา",type:"สัตว์"},{emoji:"🐱",name:"แมว",type:"สัตว์"},
+ {emoji:"🍎",name:"แอปเปิล",type:"ผลไม้"},{emoji:"🥕",name:"แครอท",type:"ผัก"},
+ {emoji:"🐦",name:"นก",type:"สัตว์"},{emoji:"🌳",name:"ต้นไม้",type:"พืช"},
+ {emoji:"🍌",name:"กล้วย",type:"ผลไม้"},{emoji:"🐢",name:"เต่า",type:"สัตว์"}
+];
+const missions=[
+ ["ภารกิจ 1 : นักสังเกตตัวจิ๋ว 👀","เลือก “สัตว์” ทั้งหมดจากบัตรภาพ"],
+ ["ภารกิจ 2 : แยกให้ถูก โค้ดให้เป็น 🔍","เลือก “ผลไม้” ทั้งหมดจากบัตรภาพ"],
+ ["ภารกิจ 3 : นักวิทย์นักจัดกลุ่ม 🌱","เลือก “พืช” ทั้งหมดจากบัตรภาพ"],
+ ["ภารกิจ 4 : นักวิทย์ตรวจสอบ 🧪","เลือกภาพที่เป็น “สัตว์” และ “ผลไม้”"],
+ ["ภารกิจ 5 : ภารกิจสุดท้าย 🏆","เลือกสิ่งที่ “กินได้” ทั้งหมด"]
+];
+let mi=0,score=0,code=[],plant=[];
+const commands=[
+["⬆️","เดินหน้า"],["⬇️","ถอยหลัง"],["➡️","ไปขวา"],["⬅️","ไปซ้าย"],
+["👀","สังเกต"],["🔍","ตรวจสอบ"],["🟢","เลือก"],["🔴","หยุด"],["🔄","ทำซ้ำ"],["⭐","สำเร็จ"]
+];
+function renderMission(){
+ document.getElementById("title").textContent=missions[mi][0];
+ document.getElementById("question").textContent=missions[mi][1];
+ document.getElementById("mnum").textContent=mi+1;
+ const c=document.getElementById("cards");c.innerHTML="";
+ data.forEach((x,i)=>{let b=document.createElement("div");b.className="card";b.innerHTML=`<div class="emoji">${x.emoji}</div><span>${x.name}</span>`;b.onclick=()=>b.classList.toggle("selected");b.dataset.i=i;c.appendChild(b)});
+ document.getElementById("feedback").textContent="เลือกบัตรภาพที่คิดว่าถูกต้อง";
+ document.getElementById("nextBtn").classList.add("hidden");
+}
+function checkClassification(){
+ let selected=[...document.querySelectorAll("#cards .selected")].map(x=>+x.dataset.i);
+ let target;
+ if(mi===0)target=[0,1,4,7];
+ if(mi===1)target=[2,6];
+ if(mi===2)target=[5];
+ if(mi===3)target=[0,1,2,4,6,7];
+ if(mi===4)target=[2,3,6];
+ let ok=selected.length===target.length&&selected.every(i=>target.includes(i));
+ let f=document.getElementById("feedback");
+ if(ok){score+=10;document.getElementById("score").textContent=score;f.textContent="🎉 ถูกต้อง! เก่งมาก นักวิทย์น้อย";f.style.background="#d8f8df";document.getElementById("nextBtn").classList.remove("hidden")}
+ else {f.textContent="ลองสังเกตอีกครั้ง 👀 แล้วเลือกใหม่";f.style.background="#fff0d9"}
+}
+function nextMission(){if(mi<missions.length-1){mi++;renderMission()}else{document.getElementById("feedback").textContent="🏆 ผ่านครบทุกภารกิจแล้ว!";document.getElementById("level").textContent=2}}
+function renderCommands(){
+ const el=document.getElementById("commands");el.innerHTML="";
+ commands.forEach((c,i)=>{let b=document.createElement("button");b.className="command";b.innerHTML=`${c[0]}<span>${c[1]}</span>`;b.onclick=()=>{code.push(i);renderCode()};el.appendChild(b)})
+}
+function renderCode(){document.getElementById("sequence").innerHTML=code.length?code.map((i,n)=>`<div class="seqitem">${commands[i][0]}<small>${commands[i][1]}</small></div>`).join(""):"<span class='small'>โค้ดที่เลือกจะปรากฏตรงนี้</span>"}
+function clearCode(){code=[];renderCode();document.getElementById("codeFeedback").textContent="ล้างโค้ดแล้ว ลองสร้างเส้นทางใหม่"}
+function runCode(){
+ let r=code.map(i=>commands[i][0]).join(" ");
+ document.getElementById("codeFeedback").textContent=r?`🤖 กำลังทดลอง: ${r}`:"ยังไม่มีโค้ด ลองเลือกบัตรคำสั่ง";
+ if(code.includes(2)&&code.includes(0)){score+=5;document.getElementById("score").textContent=score}
+}
+const plantData=[["🌱","เมล็ด",0],["🌱","เมล็ดงอก",1],["🌿","ต้นอ่อน",2],["🌳","ต้นไม้",3]];
+function renderPlants(){const e=document.getElementById("plantCards");e.innerHTML="";plantData.forEach((x,i)=>{let b=document.createElement("div");b.className="card";b.innerHTML=`<div class="emoji">${x[0]}</div><span>${x[1]}</span>`;b.onclick=()=>{plant.push(i);b.classList.add("selected");b.querySelector("span").textContent=x[1]+" ✓"};e.appendChild(b)})}
+function checkPlants(){let f=document.getElementById("plantFeedback");if(plant.length===4&&plant.every((v,i)=>v===i)){score+=15;document.getElementById("score").textContent=score;f.textContent="🌟 ถูกต้อง! การเจริญเติบโตเรียงลำดับได้ดีมาก";f.style.background="#d8f8df"}else{f.textContent="ยังไม่ถูก ลองคิดว่าอะไรเกิดก่อน–หลัง";f.style.background="#fff0d9"}}
+function makeGrid(){let e=document.getElementById("grid");let cells=["🌿","","","🔦","", "🪨","🌱","","","", "🪨","", "👩‍🔬","🌳","",""];cells.forEach((x,i)=>{let d=document.createElement("div");d.className="cell";d.textContent=x;e.appendChild(d)})}
+renderMission();renderCommands();renderPlants();makeGrid();
+</script>
+</body>
+</html>
