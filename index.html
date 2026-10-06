@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S-CODE : นักวิทย์น้อยคิดเป็นโค้ด 🎮🔬</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Prompt & Kanit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&family=Prompt:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Prompt', sans-serif;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4338ca 100%);
+            min-height: 100vh;
+            color: #f8fafc;
+            user-select: none;
+        }
+
+        .font-kanit {
+            font-family: 'Kanit', sans-serif;
+        }
+
+        /* Glassmorphism Card Style */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .glass-panel-dark {
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Custom Tile Bounce & Animations */
+        @keyframes pulse-glow {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(234, 179, 8, 0.4); }
+            50% { transform: scale(1.05); box-shadow: 0 0 25px rgba(234, 179, 8, 0.8); }
+        }
+
+        .active-tile {
+            animation: pulse-glow 1.5s infinite ease-in-out;
+            border: 3px solid #facc15 !important;
+            z-index: 10;
+        }
+
+        .character-sprite {
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Card Button Effects */
+        .btn-card {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .btn-card:hover {
+            transform: translateY(-3px) scale(1.02);
+        }
+        .btn-card:active {
+            transform: translateY(1px) scale(0.97);
+        }
+
+        /* Command Queue Slot Highlight */
+        .executing-cmd {
+            ring: 4px #facc15;
+            background-color: #ca8a04 !important;
+            transform: scale(1.1);
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen justify-between overflow-x-hidden p-2 sm:p-4">
+
+    <!-- TOP NAVBAR & HEADER -->
+    <header class="w-full max-w-6xl mx-auto mb-3">
+        <div class="glass-panel rounded-2xl p-3 sm:p-4 flex flex-wrap justify-between items-center gap-3 shadow-xl border-amber-400/30">
+            <div class="flex items-center gap-3">
+                <div class="bg-gradient-to-tr from-amber-400 to-yellow-300 text-slate-900 p-2.5 sm:p-3 rounded-xl shadow-lg font-bold text-2xl sm:text-3xl flex items-center justify-center">
+                    🧪
+                </div>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold font-kanit tracking-wide text-amber-300 drop-shadow">
+                        S-CODE <span class="text-white text-base sm:text-xl font-normal">: นักวิทย์น้อยคิดเป็นโค้ด</span>
+                    </h1>
+                    <p class="text-xs sm:text-sm text-indigo-200">บูรณาการวิทยาศาสตร์ + โค้ดดิ้ง ป.1-ป.3</p>
+                </div>
+            </div>
+
+            <!-- Score & Level Status -->
+            <div class="flex items-center gap-2 sm:gap-4 ml-auto">
+                <div class="bg-indigo-950/80 px-3 py-1.5 rounded-xl border border-indigo-500/30 flex items-center gap-2">
+                    <span class="text-amber-400 text-lg">⭐</span>
+                    <span id="total-stars" class="font-bold text-lg text-amber-300">0</span>
+                </div>
+                <button onclick="toggleAudio()" id="audio-btn" class="bg-indigo-800/80 hover:bg-indigo-700 text-white p-2.5 rounded-xl border border-indigo-400/30 transition text-sm flex items-center gap-1.5">
+                    <i class="fa-solid fa-volume-high" id="audio-icon"></i>
+                </button>
+                <button onclick="openHelpModal()" class="bg-amber-500 hover:bg-amber-400 text-slate-900 font-bold px-3 py-2 rounded-xl transition text-sm flex items-center gap-1 shadow-lg">
+                    <i class="fa-solid fa-circle-question"></i> <span class="hidden sm:inline">วิธีเล่น</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN GAME CONTAINER -->
+    <main class="w-full max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1 items-start">
+
+        <!-- LEFT COLUMN: MISSION SELECTION & GAME BOARD (7 cols) -->
+        <section class="lg:col-span-7 flex flex-col gap-3 w-full">
+            
+            <!-- MISSION SELECTOR TABS -->
+            <div class="glass-panel rounded-2xl p-2 flex gap-1.5 overflow-x-auto shadow-md">
+                <button onclick="selectMission(0)" id="m-btn-0" class="mission-tab flex-1 min-w-[100px] py-2 px-2 rounded-xl font-semibold text-xs sm:text-sm transition flex flex-col items-center gap-1 border border-transparent">
+                    <span>🌱 ภารกิจ 1</span>
+                    <span class="text-[10px] font-normal opacity-80">ตามหาพืช</span>
+                </button>
+                <button onclick="selectMission(1)" id="m-btn-1" class="mission-tab flex-1 min-w-[100px] py-2 px-2 rounded-xl font-semibold text-xs sm:text-sm transition flex flex-col items-center gap-1 border border-transparent">
+                    <span>🥕 ภารกิจ 2</span>
+                    <span class="text-[10px] font-normal opacity-80">แยกประเภท</span>
+                </button>
+                <button onclick="selectMission(2)" id="m-btn-2" class="mission-tab flex-1 min-w-[100px] py-2 px-2 rounded-xl font-semibold text-xs sm:text-sm transition flex flex-col items-center gap-1 border border-transparent">
+                    <span>🔦 ภารกิจ 3</span>
+                    <span class="text-[10px] font-normal opacity-80">แหล่งกำเนิดแสง</span>
+                </button>
+                <button onclick="selectMission(3)" id="m-btn-3" class="mission-tab flex-1 min-w-[100px] py-2 px-2 rounded-xl font-semibold text-xs sm:text-sm transition flex flex-col items-center gap-1 border border-transparent">
+                    <span>🌞 ภารกิจ 4</span>
+                    <span class="text-[10px] font-normal opacity-80">ลำดับเกิดเงา</span>
+                </button>
+            </div>
+
+            <!-- MISSION INFO BOX -->
+            <div class="glass-panel rounded-2xl p-3 sm:p-4 border-l-4 border-l-amber-400">
+                <div class="flex justify-between items-start gap-2">
+                    <div>
+                        <h2 id="mission-title" class="font-bold text-lg sm:text-xl text-amber-300 font-kanit">
+                            กำลังโหลดภารกิจ...
+                        </h2>
+                        <p id="mission-desc" class="text-xs sm:text-sm text-slate-200 mt-1 leading-relaxed">
+                            คำอธิบายภารกิจจะแสดงที่นี่
+                        </p>
+                    </div>
+                    <div id="target-counter" class="bg-indigo-950/90 text-amber-300 border border-amber-400/40 text-xs px-2.5 py-1.5 rounded-lg font-bold shrink-0">
+                        เป้าหมาย: 0/0
+                    </div>
+                </div>
+                <div id="mission-hint-box" class="mt-2 bg-indigo-900/50 p-2 rounded-lg border border-indigo-400/20 text-xs text-indigo-200 flex items-center gap-2">
+                    <i class="fa-solid fa-lightbulb text-amber-400 text-sm"></i>
+                    <span id="mission-hint">คำแนะนำทางวิทยาศาสตร์</span>
+                </div>
+            </div>
+
+            <!-- BOARD CONTAINER -->
+            <div class="glass-panel-dark rounded-2xl p-3 sm:p-4 relative flex flex-col items-center justify-center shadow-2xl border border-indigo-500/20 min-h-[320px] sm:min-h-[380px]">
+                
+                <!-- Dynamic Grid Board -->
+                <div id="grid-board" class="grid gap-1.5 sm:gap-2.5 w-full max-w-[420px] aspect-square relative p-1.5 bg-slate-900/60 rounded-xl border border-indigo-800/50">
+                    <!-- Grid cells populated dynamically via JavaScript -->
+                </div>
+
+                <!-- Floating Inventory Status (for classification/carrying) -->
+                <div id="inventory-bar" class="w-full max-w-[420px] mt-3 bg-slate-800/80 rounded-xl p-2 text-xs flex items-center justify-between border border-slate-700 hidden">
+                    <span class="text-slate-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-briefcase text-amber-400"></i> สิ่งที่ถืออยู่:
+                    </span>
+                    <span id="carried-item-display" class="font-bold text-amber-300 bg-slate-900 px-2 py-0.5 rounded border border-slate-700">
+                        ไม่มี
+                    </span>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- RIGHT COLUMN: CODING CARDS & COMMAND QUEUE (5 cols) -->
+        <section class="lg:col-span-5 flex flex-col gap-3 w-full">
+            
+            <!-- AVAILABLE CARDS PALETTE -->
+            <div class="glass-panel rounded-2xl p-3 sm:p-4">
+                <div class="flex justify-between items-center mb-2.5">
+                    <h3 class="font-bold text-base text-amber-300 font-kanit flex items-center gap-2">
+                        <i class="fa-solid fa-cubes-stacked"></i> บัตรคำสั่ง Coding
+                    </h3>
+                    <span class="text-[11px] text-slate-300 bg-indigo-950/80 px-2 py-0.5 rounded-full border border-indigo-700">
+                        กดเพื่อเพิ่ม
+                    </span>
+                </div>
+
+                <!-- Grid of Command Cards -->
+                <div class="grid grid-cols-3 gap-2">
+                    <button onclick="addCommand('UP')" class="btn-card bg-gradient-to-b from-blue-500 to-blue-700 hover:from-blue-400 hover:to-blue-600 text-white p-2 rounded-xl border-b-4 border-blue-900 shadow-md flex flex-col items-center justify-center">
+                        <span class="text-xl sm:text-2xl mb-0.5">⬆️</span>
+                        <span class="text-xs font-bold">เดินหน้า</span>
+                    </button>
+                    <button onclick="addCommand('DOWN')" class="btn-card bg-gradient-to-b from-blue-500 to-blue-700 hover:from-blue-400 hover:to-blue-600 text-white p-2 rounded-xl border-b-4 border-blue-900 shadow-md flex flex-col items-center justify-center">
+                        <span class="text-xl sm:text-2xl mb-0.5">⬇️</span>
+                        <span class="text-xs font-bold">ถอยหลัง</span>
+                    </button>
+                    <button onclick="addCommand('LEFT')" class="btn-card bg-gradient-to-b from-cyan-500 to-cyan-700 hover:from-cyan-400 hover:to-cyan-600 text-white p-2 rounded-xl border-b-4 border-cyan-900 shadow-md flex flex-col items-center justify-center">
+                        <span class="text-xl sm:text-2xl mb-0.5">⬅️</span>
+                        <span class="text-xs font-bold">เลี้ยวซ้าย</span>
+                    </button>
+                    <button onclick="addCommand('RIGHT')" class="btn-card bg-gradient-to-b from-cyan-500 to-cyan-700 hover:from-cyan-400 hover:to-cyan-600 text-white p-2 rounded-xl border-b-4 border-cyan-900 shadow-md flex flex-col items-center justify-center">
+                        <span class="text-xl sm:text-2xl mb-0.5">➡️</span>
+                        <span class="text-xs font-bold">เลี้ยวขวา</span>
+                    </button>
+                    <button onclick="addCommand('INSPECT')" class="btn-card bg-gradient-to-b from-purple-500 to-purple-700 hover:from-purple-400 hover:to-purple-600 text-white p-2 rounded-xl border-b-4 border-purple-900 shadow-md flex flex-col items-center justify-center">
+                        <span class="text-xl sm:text-2xl mb-0.5">🔍</span>
+                        <span class="text-xs font-bold">สังเกต</span>
+                    </button>
+                    <button onclick="addCommand('SELECT')" class="btn-card bg-gradient-to-b from-emerald-500 to-emerald-700 hover:from-emerald-400 hover:to-emerald-600 text-white p-2 rounded-xl border-b-4 border-emerald-900 shadow-md flex flex-col items-center justify-center">
+                        <span class="text-xl sm:text-2xl mb-0.5">🟢</span>
+                        <span class="text-xs font-bold">เลือก/เก็บ</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- COMMAND QUEUE PROGRAMMING BOARD -->
+            <div class="glass-panel rounded-2xl p-3 sm:p-4 flex flex-col flex-1">
+                <div class="flex justify-between items-center mb-2">
+                    <h3 class="font-bold text-base text-amber-300 font-kanit flex items-center gap-2">
+                        <i class="fa-solid fa-code"></i> ลำดับโค้ดของคุณ (<span id="cmd-count">0</span>/<span id="cmd-max">15</span>)
+                    </h3>
+                    <div class="flex gap-1.5">
+                        <button onclick="undoLastCommand()" title="แก้ไข / ถอยหลัง 1 บัตร" class="bg-amber-600/80 hover:bg-amber-500 text-white px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1 border border-amber-400/40">
+                            🔄 แก้ไข
+                        </button>
+                        <button onclick="clearCommands()" title="ล้างโค้ดทั้งหมด" class="bg-rose-600/80 hover:bg-rose-500 text-white px-2 py-1 rounded-lg text-xs font-bold transition border border-rose-400/40">
+                            🗑️ ล้าง
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Command Sequence List Box -->
+                <div id="queue-container" class="bg-slate-900/80 border border-indigo-900 rounded-xl p-2.5 min-h-[140px] max-h-[220px] overflow-y-auto flex flex-wrap content-start gap-1.5 mb-3">
+                    <div id="empty-queue-msg" class="w-full text-center text-slate-400 text-xs my-auto py-6 flex flex-col items-center gap-1">
+                        <i class="fa-regular fa-hand-pointer text-lg opacity-60"></i>
+                        กดบัตรคำสั่งด้านบนเพื่อเริ่มเขียนโค้ดภารกิจ
+                    </div>
+                </div>
+
+                <!-- EXECUTION & RESET CONTROL BUTTONS -->
+                <div class="grid grid-cols-2 gap-2 mt-auto">
+                    <button id="run-btn" onclick="runProgram()" class="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-slate-950 font-bold py-3 px-4 rounded-xl shadow-lg border-b-4 border-green-800 text-sm sm:text-base flex items-center justify-center gap-2 transition active:translate-y-1">
+                        <i class="fa-solid fa-play"></i> เล่นโค้ด!
+                    </button>
+                    <button id="reset-btn" onclick="resetBoardState()" class="bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600 text-white font-bold py-3 px-4 rounded-xl shadow-lg border-b-4 border-slate-900 text-sm sm:text-base flex items-center justify-center gap-2 transition active:translate-y-1">
+                        <i class="fa-solid fa-rotate-left"></i> ตั้งต้นใหม่
+                    </button>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="w-full max-w-6xl mx-auto text-center text-xs text-indigo-300 opacity-80 my-3">
+        S-CODE : สื่อการเรียนรู้บูรณาการวิทยาศาสตร์และการคิดเชิงคำนวณสำหรับเด็ก 🧠🔬
+    </footer>
+
+    <!-- SCIENCE INSPECT MODAL DIALOG -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden transition-opacity">
+        <div id="modal-box" class="bg-slate-900 border-2 border-amber-400 rounded-2xl max-w-md w-full p-5 shadow-2xl relative text-center flex flex-col items-center transform scale-95 transition-transform">
+            <div id="modal-icon" class="text-5xl mb-2 bg-slate-800 p-3 rounded-2xl border border-slate-700">🔍</div>
+            <h3 id="modal-title" class="text-xl font-bold font-kanit text-amber-300 mb-1">ชื่อวัตถุ</h3>
+            <p id="modal-category" class="text-xs text-indigo-300 font-semibold mb-3 bg-indigo-950 px-2.5 py-1 rounded-full border border-indigo-700">หมวดหมู่</p>
+            <p id="modal-body" class="text-sm text-slate-200 bg-slate-800/80 p-3 rounded-xl border border-slate-700/60 leading-relaxed text-left w-full mb-4">
+                คำอธิบายทางวิทยาศาสตร์...
+            </p>
+            <button onclick="closeModal()" class="w-full bg-gradient-to-r from-amber-500 to-yellow-400 text-slate-950 font-bold py-2.5 rounded-xl shadow-lg hover:from-amber-400 hover:to-yellow-300 transition">
+                เข้าใจแล้ว 👍
+            </button>
+        </div>
+    </div>
+
+    <!-- MISSION COMPLETE / STAR MODAL -->
+    <div id="win-backdrop" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border-2 border-emerald-400 rounded-3xl max-w-md w-full p-6 shadow-2xl text-center flex flex-col items-center animate-bounce-short">
+            <div class="text-6xl mb-2">🎉</div>
+            <h3 class="text-2xl font-bold font-kanit text-emerald-400 mb-1">เก่งมาก! ผ่านภารกิจแล้ว</h3>
+            <p id="win-subtitle" class="text-sm text-indigo-200 mb-3">คุณเขียนโค้ดแก้ปัญหาวิทยาศาสตร์สำเร็จ!</p>
+            
+            <div id="win-stars" class="flex justify-center gap-2 text-4xl mb-4 text-amber-400">
+                <span>⭐</span><span>⭐</span><span>⭐</span>
+            </div>
+
+            <p id="win-stats" class="text-xs text-slate-300 bg-slate-800 p-3 rounded-xl w-full mb-5 text-left leading-relaxed">
+                สรุปการเดิน...
+            </p>
+
+            <div class="flex gap-2 w-full">
+                <button onclick="closeWinModal(); resetBoardState();" class="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-2.5 rounded-xl transition text-sm">
+                    เล่นอีกครั้ง 🔄
+                </button>
+                <button id="next-mission-btn" onclick="nextMission()" class="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2.5 rounded-xl transition text-sm shadow-lg">
+                    ภารกิจถัดไป ➡️
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- HELP MODAL -->
+    <div id="help-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-slate-900 border border-indigo-400/40 rounded-2xl max-w-lg w-full p-5 text-slate-200 text-sm leading-relaxed max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-indigo-800 pb-2 mb-3">
+                <h3 class="font-bold text-lg text-amber-300 font-kanit flex items-center gap-2">
+                    <i class="fa-solid fa-graduation-cap"></i> คู่มือการเล่นสำหรับนักวิทย์น้อย
+                </h3>
+                <button onclick="closeHelpModal()" class="text-slate-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="space-y-3 text-xs sm:text-sm">
+                <p>ยินดีต้อนรับสู่ <strong class="text-amber-300">S-CODE</strong>! เกมที่จะพาเด็กๆ มาไขปริศนาวิทยาศาสตร์ด้วยการเขียนโค้ดบัตรคำสั่ง</p>
+                
+                <div class="bg-indigo-950/80 p-3 rounded-xl border border-indigo-800 space-y-1.5">
+                    <div class="font-bold text-amber-400">🧩 บัตรคำสั่งหลัก:</div>
+                    <p>⬆️ <strong>เดินหน้า</strong> / ⬇️ <strong>ถอยหลัง</strong> / ⬅️ <strong>เลี้ยวซ้าย</strong> / ➡️ <strong>เลี้ยวขวา</strong>: เคลื่อนที่ตัวละครนักวิทยาศาสตร์ 👩‍🔬</p>
+                    <p>🔍 <strong>สังเกต</strong>: ตรวจสอบข้อมูลวิทยาศาสตร์ของสิ่งของในช่องนั้น</p>
+                    <p>🟢 <strong>เลือก/เก็บ</strong>: เลือกคำตอบวิทยาศาสตร์ หรือเก็บไอเทมใส่ตะกร้า</p>
+                    <p>🔄 <strong>แก้ไข</strong>: ลบบัตรคำสั่งล่าสุดที่วางผิดออกเพื่อปรับปรุงโค้ด</p>
+                </div>
+
+                <div class="bg-indigo-950/80 p-3 rounded-xl border border-indigo-800 space-y-1.5">
+                    <div class="font-bold text-emerald-400">🔬 ทักษะที่จะได้รับ:</div>
+                    <ul class="list-disc list-inside space-y-1 text-slate-300">
+                        <li>จำแนกพืช, สัตว์, สิ่งไร้ชีวิต</li>
+                        <li>แยกประเภทผัก และ ผลไม้</li>
+                        <li>ระบุแหล่งกำเนิดแสง และการสะท้อนแสง</li>
+                        <li>ลำดับขั้นตอนการเกิดเงา (แสง ➔ วัตถุ ➔ เงา)</li>
+                        <li>ฝึกการคิดเป็นขั้นตอน (Algorithm) & การแก้ไขโค้ด (Debugging)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <button onclick="closeHelpModal()" class="w-full mt-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2 rounded-xl transition">
+                เริ่มเข้าสู่ห้องทดลอง 🚀
+            </button>
+        </div>
+    </div>
+
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Web Audio Synthesizer for zero-dependency SFX
+        let audioEnabled = true;
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioCtx();
+            }
+        }
+
+        function playSound(type) {
+            if (!audioEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, now);
+                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.05);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
+                    osc.start(now);
+                    osc.stop(now + 0.05);
+                } else if (type === 'step') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.exponentialRampToValueAtTime(150, now + 0.1);
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else if (type === 'collect') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+                    osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                } else if (type === 'win') {
+                    osc.type = 'sine';
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        const oscN = audioCtx.createOscillator();
+                        const gainN = audioCtx.createGain();
+                        oscN.connect(gainN);
+                        gainN.connect(audioCtx.destination);
+                        oscN.frequency.setValueAtTime(freq, now + idx * 0.1);
+                        gainN.gain.setValueAtTime(0.2, now + idx * 0.1);
+                        gainN.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.1 + 0.25);
+                        oscN.start(now + idx * 0.1);
+                        oscN.stop(now + idx * 0.1 + 0.25);
+                    });
+                } else if (type === 'error') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, now);
+                    osc.frequency.setValueAtTime(120, now + 0.12);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'inspect') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(600, now);
+                    osc.frequency.exponentialRampToValueAtTime(900, now + 0.15);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                }
+            } catch(e) {
+                console.log("Audio play error", e);
+            }
+        }
+
+        function toggleAudio() {
+            audioEnabled = !audioEnabled;
+            document.getElementById('audio-icon').className = audioEnabled ? "fa-solid fa-volume-high" : "fa-solid fa-volume-xmark text-rose-400";
+        }
+
+        // GAME MISSIONS CONFIGURATION
+        const MISSIONS = [
+            {
+                id: 0,
+                title: "ภารกิจที่ 1 : ตามหา “พืช” 🌱",
+                desc: "ช่วยนักวิทย์เดินไปสังเกต (🔍) และเลือก (🟢) เฉพาะภาพที่เป็น 'พืช' ให้ครบทั้งหมด!",
+                hint: "พืชสร้างอาหารเองได้ เช่น ต้นไม้ 🌳 ดอกไม้ 🌸 ใบไม้ 🌿 กระบองเพชร 🌵 (ก้อนหินและสัตว์ไม่ใช่พืชนะ)",
+                gridSize: 5,
+                startPos: { r: 4, c: 0 },
+                targetsToCollect: ['tree', 'flower', 'leaf', 'cactus'],
+                maxCmds: 18,
+                items: [
+                    { r: 0, c: 1, id: 'tree', name: 'ต้นไม้ใหญ่', icon: '🌳', category: 'พืช 🌱', detail: 'พืชมีชีวิต ต้องการแสงแดด น้ำ และอากาศเพื่อสร้างอาหารด้วยกระบวนการสังเคราะห์ด้วยแสง' },
+                    { r: 0, c: 4, id: 'rock', name: 'ก้อนหิน', icon: '🪨', category: 'สิ่งไม่มีชีวิต ⛰️', detail: 'ก้อนหินเป็นสิ่งไม่มีชีวิต ไม่เจริญเติบโต และไม่ใช่พืช' },
+                    { r: 1, c: 3, id: 'flower', name: 'ดอกไม้ทานตะวัน', icon: '🌻', category: 'พืช 🌱', detail: 'ดอกไม้เป็นส่วนหนึ่งของพืช ช่วยในการสืบพันธุ์และล่อแมลงมาผสมเกสร' },
+                    { r: 2, c: 0, id: 'leaf', name: 'ใบไม้เขียว', icon: '🌿', category: 'พืช 🌱', detail: 'ใบไม้มีสารสีเขียวชื่อ คลอโรฟิลล์ ใช้รับแสงแดดมาปรุงอาหารให้พืช' },
+                    { r: 2, c: 2, id: 'dog', name: 'น้องหมา', icon: '🐶', category: 'สัตว์ 🐕', detail: 'สุนัขเป็นสัตว์ ไม่ใช่พืช เคลื่อนที่เองได้และต้องกินสิ่งอื่นเป็นอาหาร' },
+                    { r: 3, c: 4, id: 'cactus', name: 'กระบองเพชร', icon: '🌵', category: 'พืช 🌱', detail: 'กระบองเพชรเป็นพืชทนแล้ง เปลี่ยนใบเป็นหนามเพื่อลดการสูญเสียน้ำ' }
+                ]
+            },
+            {
+                id: 1,
+                title: "ภารกิจที่ 2 : นักวิทย์แยกประเภท 🥕🍎",
+                desc: "เขียนโค้ดเดินไปเก็บ 'ผัก' ใส่ตะกร้าผัก 🧺 และเก็บ 'ผลไม้' ใส่ตะกร้าผลไม้ 🧺",
+                hint: "เดินไปที่ผัก/ผลไม้ แล้วใช้ 🟢 เก็บ จากนั้นเดินไปที่ตะกร้าให้ถูกต้อง แล้วใช้ 🟢 วางใส่ตะกร้า!",
+                gridSize: 5,
+                startPos: { r: 4, c: 0 },
+                mode: 'classify',
+                targetsToCollect: ['veg_basket', 'fruit_basket'], // Complete classification
+                maxCmds: 22,
+                items: [
+                    { r: 0, c: 0, id: 'carrot', type: 'veg', name: 'แครอท', icon: '🥕', category: 'ผัก 🥕', detail: 'แครอทคือส่วนรากของพืชที่สะสมอาหาร อุดมไปด้วยวิตามินเอ' },
+                    { r: 0, c: 4, id: 'apple', type: 'fruit', name: 'แอปเปิ้ล', icon: '🍎', category: 'ผลไม้ 🍎', detail: 'แอปเปิ้ลคือผลไม้ที่เจริญมาจากดอก มีเมล็ดอยู่ข้างใน' },
+                    { r: 2, c: 2, id: 'broccoli', type: 'veg', name: 'บรอกโคลี', icon: '🥦', category: 'ผัก 🥦', detail: 'บรอกโคลีเป็นส่วนดอกของพืช นิยมนำมารับประทาน มีกากใยสูง' },
+                    { r: 4, c: 2, id: 'veg_basket', type: 'basket_veg', name: 'ตะกร้าผัก', icon: '🧺🥦', category: 'จุดส่งผัก', detail: 'นำผัก (🥕 แครอท, 🥦 บรอกโคลี) มาใส่ในตะกร้านี้' },
+                    { r: 4, c: 4, id: 'fruit_basket', type: 'basket_fruit', name: 'ตะกร้าผลไม้', icon: '🧺🍎', category: 'จุดส่งผลไม้', detail: 'นำผลไม้ (🍎 แอปเปิ้ล) มาใส่ในตะกร้านี้' }
+                ]
+            },
+            {
+                id: 2,
+                title: "ภารกิจที่ 3 : ตามหาแสง 🔦",
+                desc: "เดินไปสังเกต (🔍) และเลือก (🟢) เฉพาะวัตถุที่เป็น 'แหล่งกำเนิดแสง' (สร้างแสงได้เอง)",
+                hint: "ดวงอาทิตย์ ☀️ หลอดไฟ 💡 เทียนไข 🕯️ ส่องสว่างได้เอง! (ดวงจันทร์ 🌙 เพียงแค่สะท้อนแสงอาทิตย์ ไม่ใช่แหล่งกำเนิดแสง)",
+                gridSize: 5,
+                startPos: { r: 2, c: 2 },
+                targetsToCollect: ['sun', 'bulb', 'candle'],
+                maxCmds: 20,
+                items: [
+                    { r: 0, c: 0, id: 'sun', name: 'ดวงอาทิตย์', icon: '☀️', category: 'แหล่งกำเนิดแสงตามธรรมชาติ ☀️', detail: 'ดวงอาทิตย์เป็นแหล่งกำเนิดแสงและพลังงานความร้อนที่ใหญ่ที่สุดในระบบสุริยะ' },
+                    { r: 0, c: 4, id: 'moon', name: 'ดวงจันทร์', icon: '🌙', category: 'วัตถุสะท้อนแสง (ไม่ใช่แหล่งกำเนิด) 🌙', detail: 'ดวงจันทร์ไม่มีแสงในตัวเอง! สว่างได้เพราะสะท้อนแสงจากดวงอาทิตย์มายังโลก' },
+                    { r: 4, c: 0, id: 'bulb', name: 'หลอดไฟ', icon: '💡', category: 'แหล่งกำเนิดแสงที่มนุษย์สร้าง 💡', detail: 'หลอดไฟเปลี่ยนพลังงานไฟฟ้าให้กลายเป็นพลังงานแสงสว่าง' },
+                    { r: 4, c: 4, id: 'candle', name: 'เทียนไขจุดไฟ', icon: '🕯️', category: 'แหล่งกำเนิดแสงจากการเผาไหม้ 🕯️', detail: 'ไฟบนเทียนไขเกิดจากการเผาไหม้ ให้ทั้งแสงสว่างและความร้อน' },
+                    { r: 2, c: 4, id: 'mirror', name: 'กระจกเงา', icon: '🪞', category: 'วัตถุสะท้อนแสง 🪞', detail: 'กระจกเงาไม่มีแสงในตัวเอง ทำหน้าที่สะท้อนแสงที่ตกกระทบกลับมา' }
+                ]
+            },
+            {
+                id: 3,
+                title: "ภารกิจที่ 4 : เงาเกิดได้อย่างไร 🌞",
+                desc: "เรียงลำดับการเกิดเงาตามวิทยาศาสตร์! เดินไปเลือก 1.แหล่งกำเนิดแสง ➔ 2.วัตถุ ➔ 3.เงา",
+                hint: "เรียงตามลำดับ: 1st ดวงอาทิตย์ ☀️ ➔ 2nd ตุ๊กตาหมี 🧸 ➔ 3rd เงาสีดำ ⬛ (ถ้าเรียงผิด ใช้บัตร 🔄 แก้ไขโค้ดนะ)",
+                gridSize: 5,
+                startPos: { r: 4, c: 0 },
+                mode: 'sequence',
+                requiredSequence: ['light_source', 'object', 'shadow'],
+                maxCmds: 20,
+                items: [
+                    { r: 1, c: 1, id: 'light_source', seqStep: 1, name: '1. แหล่งกำเนิดแสง', icon: '☀️', category: 'ขั้นตอนที่ 1', detail: 'เงาจะเกิดขึ้นได้ ต้องมี "แหล่งกำเนิดแสง" ส่องออกมาเป็นเส้นตรง' },
+                    { r: 1, c: 3, id: 'object', seqStep: 2, name: '2. วัตถุทึบแสง', icon: '🧸', category: 'ขั้นตอนที่ 2', detail: 'เมื่อนำ "วัตถุ" มาขวางกั้นทางเดินของแสง แสงจะไม่สามารถผ่านไปได้' },
+                    { r: 3, c: 3, id: 'shadow', seqStep: 3, name: '3. เงาหลังวัตถุ', icon: '⬛', category: 'ขั้นตอนที่ 3', detail: 'เกิดเป็นพื้นที่มืดเรียกว่า "เงา" ตกกระทบอยู่บนฉากรองรับด้านหลังวัตถุ' }
+                ]
+            }
+        ];
+
+        // CURRENT STATE
+        let currentMissionIdx = 0;
+        let playerPos = { r: 4, c: 0 };
+        let commandsQueue = [];
+        let isExecuting = false;
+        let collectedItemIds = new Set();
+        let currentCarriedItem = null; // for classification mission
+        let sequenceProgress = []; // for sequence mission
+        let totalStarsEarned = 0;
+        let missionStars = [0, 0, 0, 0];
+
+        // INITIALIZATION ON LOAD
+        window.onload = function() {
+            selectMission(0);
+        };
+
+        function selectMission(idx) {
+            if (isExecuting) return;
+            playSound('click');
+            currentMissionIdx = idx;
+
+            // Update Tab UI
+            for (let i = 0; i < MISSIONS.length; i++) {
+                const btn = document.getElementById(`m-btn-${i}`);
+                if (i === idx) {
+                    btn.className = "mission-tab flex-1 min-w-[100px] py-2 px-2 rounded-xl font-semibold text-xs sm:text-sm transition flex flex-col items-center gap-1 bg-amber-400 text-slate-950 shadow-lg border-2 border-amber-300 font-bold scale-105";
+                } else {
+                    btn.className = "mission-tab flex-1 min-w-[100px] py-2 px-2 rounded-xl font-semibold text-xs sm:text-sm transition flex flex-col items-center gap-1 bg-indigo-900/60 hover:bg-indigo-800/80 text-indigo-200 border border-indigo-700/50";
+                }
+            }
+
+            const mission = MISSIONS[idx];
+            document.getElementById('mission-title').innerText = mission.title;
+            document.getElementById('mission-desc').innerText = mission.desc;
+            document.getElementById('mission-hint').innerText = mission.hint;
+            document.getElementById('cmd-max').innerText = mission.maxCmds;
+
+            // Inventory Bar visibility
+            const invBar = document.getElementById('inventory-bar');
+            if (mission.mode === 'classify') {
+                invBar.classList.remove('hidden');
+            } else {
+                invBar.classList.add('hidden');
+            }
+
+            resetBoardState();
+        }
+
+        function resetBoardState() {
+            if (isExecuting) return;
+            playSound('click');
+            const mission = MISSIONS[currentMissionIdx];
+            playerPos = { ...mission.startPos };
+            commandsQueue = [];
+            collectedItemIds.clear();
+            currentCarriedItem = null;
+            sequenceProgress = [];
+
+            updateCarriedDisplay();
+            updateTargetCounter();
+            renderQueueUI();
+            renderGrid();
+        }
+
+        function renderGrid() {
+            const mission = MISSIONS[currentMissionIdx];
+            const board = document.getElementById('grid-board');
+            board.innerHTML = '';
+            board.style.gridTemplateColumns = `repeat(${mission.gridSize}, minmax(0, 1fr))`;
+
+            for (let r = 0; r < mission.gridSize; r++) {
+                for (let c = 0; c < mission.gridSize; c++) {
+                    const tile = document.createElement('div');
+                    const isPlayer = (playerPos.r === r && playerPos.c === c);
+
+                    // Tile base style
+                    let tileClasses = "aspect-square rounded-xl border flex flex-col items-center justify-center relative p-1 transition-all duration-300 shadow-inner ";
+                    
+                    // Grid pattern styling
+                    if ((r + c) % 2 === 0) {
+                        tileClasses += "bg-slate-800/80 border-slate-700/60 ";
+                    } else {
+                        tileClasses += "bg-slate-800/40 border-slate-700/40 ";
+                    }
+
+                    if (isPlayer) {
+                        tileClasses += "active-tile ";
+                    }
+
+                    tile.className = tileClasses;
+
+                    // Check if item on cell
+                    const item = mission.items.find(it => it.r === r && it.c === c);
+
+                    let contentHTML = '';
+
+                    if (item) {
+                        const isCollected = collectedItemIds.has(item.id);
+                        contentHTML += `
+                            <div class="text-2xl sm:text-3xl transition-transform duration-300 ${isCollected ? 'opacity-30 grayscale scale-75' : 'hover:scale-110'}">
+                                ${item.icon}
+                            </div>
+                            <span class="text-[9px] sm:text-[10px] font-bold text-center leading-none mt-0.5 truncate max-w-full px-0.5 ${isCollected ? 'line-through text-slate-500' : 'text-slate-200'}">
+                                ${item.name}
+                            </span>
+                        `;
+                    }
+
+                    // Render Character if here
+                    if (isPlayer) {
+                        contentHTML += `
+                            <div class="character-sprite absolute inset-0 m-auto w-4/5 h-4/5 bg-amber-400/90 border-2 border-amber-200 rounded-2xl flex items-center justify-center shadow-xl z-20 animate-pulse">
+                                <span class="text-2xl sm:text-3xl drop-shadow">👩‍🔬</span>
+                            </div>
+                        `;
+                    }
+
+                    tile.innerHTML = contentHTML;
+                    board.appendChild(tile);
+                }
+            }
+        }
+
+        function updateTargetCounter() {
+            const mission = MISSIONS[currentMissionIdx];
+            const counterEl = document.getElementById('target-counter');
+
+            if (mission.mode === 'classify') {
+                const totalBasketsCompleted = (collectedItemIds.has('veg_basket') ? 1 : 0) + (collectedItemIds.has('fruit_basket') ? 1 : 0);
+                counterEl.innerText = `ส่งผลงาน: ${totalBasketsCompleted}/2 ตะกร้า`;
+            } else if (mission.mode === 'sequence') {
+                counterEl.innerText = `ขั้นตอน: ${sequenceProgress.length}/3`;
+            } else {
+                counterEl.innerText = `เลือกแล้ว: ${collectedItemIds.size}/${mission.targetsToCollect.length}`;
+            }
+        }
+
+        function updateCarriedDisplay() {
+            const display = document.getElementById('carried-item-display');
+            if (currentCarriedItem) {
+                display.innerHTML = `<span class="text-amber-300">${currentCarriedItem.icon} ${currentCarriedItem.name}</span>`;
+            } else {
+                display.innerHTML = `<span class="text-slate-400">ไม่มี</span>`;
+            }
+        }
+
+        // COMMAND QUEUE MANAGEMENT
+        function addCommand(type) {
+            if (isExecuting) return;
+            const mission = MISSIONS[currentMissionIdx];
+            if (commandsQueue.length >= mission.maxCmds) {
+                playSound('error');
+                showToast("บรรจุบัตรคำสั่งเต็มจำนวนแล้ว!");
+                return;
+            }
+
+            playSound('click');
+            commandsQueue.push(type);
+            renderQueueUI();
+        }
+
+        function undoLastCommand() {
+            if (isExecuting || commandsQueue.length === 0) return;
+            playSound('click');
+            commandsQueue.pop();
+            renderQueueUI();
+        }
+
+        function clearCommands() {
+            if (isExecuting || commandsQueue.length === 0) return;
+            playSound('click');
+            commandsQueue = [];
+            renderQueueUI();
+        }
+
+        function renderQueueUI() {
+            const container = document.getElementById('queue-container');
+            const countEl = document.getElementById('cmd-count');
+            countEl.innerText = commandsQueue.length;
+
+            if (commandsQueue.length === 0) {
+                container.innerHTML = `
+                    <div id="empty-queue-msg" class="w-full text-center text-slate-400 text-xs my-auto py-6 flex flex-col items-center gap-1">
+                        <i class="fa-regular fa-hand-pointer text-lg opacity-60"></i>
+                        กดบัตรคำสั่งด้านบนเพื่อเริ่มเขียนโค้ดภารกิจ
+                    </div>
+                `;
+                return;
+            }
+
+            const cmdMap = {
+                'UP': { icon: '⬆️', label: 'ขึ้น', bg: 'bg-blue-600' },
+                'DOWN': { icon: '⬇️', label: 'ลง', bg: 'bg-blue-600' },
+                'LEFT': { icon: '⬅️', label: 'ซ้าย', bg: 'bg-cyan-600' },
+                'RIGHT': { icon: '➡️', label: 'ขวา', bg: 'bg-cyan-600' },
+                'INSPECT': { icon: '🔍', label: 'สังเกต', bg: 'bg-purple-600' },
+                'SELECT': { icon: '🟢', label: 'เลือก', bg: 'bg-emerald-600' }
+            };
+
+            container.innerHTML = commandsQueue.map((cmd, idx) => `
+                <div id="cmd-card-${idx}" class="${cmdMap[cmd].bg} text-white text-xs px-2 py-1 rounded-lg border border-white/20 shadow flex items-center gap-1 transition-all">
+                    <span class="text-xs font-mono text-amber-200 font-bold">${idx + 1}.</span>
+                    <span>${cmdMap[cmd].icon}</span>
+                    <span class="font-semibold">${cmdMap[cmd].label}</span>
+                </div>
+            `).join('');
+        }
+
+        // PROGRAM EXECUTION ENGINE
+        async function runProgram() {
+            if (isExecuting) return;
+            if (commandsQueue.length === 0) {
+                playSound('error');
+                showToast("ยังไม่ได้วางบัตรคำสั่งเลยครับ!");
+                return;
+            }
+
+            isExecuting = true;
+            toggleControls(false);
+
+            const mission = MISSIONS[currentMissionIdx];
+
+            for (let i = 0; i < commandsQueue.length; i++) {
+                const cmd = commandsQueue[i];
+                highlightExecutingCard(i);
+
+                await delay(450);
+
+                let moved = false;
+                if (cmd === 'UP' && playerPos.r > 0) { playerPos.r--; moved = true; }
+                else if (cmd === 'DOWN' && playerPos.r < mission.gridSize - 1) { playerPos.r++; moved = true; }
+                else if (cmd === 'LEFT' && playerPos.c > 0) { playerPos.c--; moved = true; }
+                else if (cmd === 'RIGHT' && playerPos.c < mission.gridSize - 1) { playerPos.c++; moved = true; }
+
+                if (moved) {
+                    playSound('step');
+                    renderGrid();
+                } else if (cmd === 'INSPECT') {
+                    playSound('inspect');
+                    handleInspectCommand();
+                    await delay(800);
+                } else if (cmd === 'SELECT') {
+                    handleSelectCommand();
+                    renderGrid();
+                    await delay(600);
+                }
+
+                // Check mid-way fail/win
+                if (checkWinCondition()) {
+                    await delay(300);
+                    handleWin();
+                    isExecuting = false;
+                    toggleControls(true);
+                    return;
+                }
+            }
+
+            // After code finishes, check if win or failed
+            await delay(400);
+            if (!checkWinCondition()) {
+                playSound('error');
+                showToast("ยังไม่บรรลุภารกิจ ลองใช้บัตร 🔄 แก้ไขโค้ดดูนะ!");
+            }
+
+            isExecuting = false;
+            toggleControls(true);
+            unhighlightCards();
+        }
+
+        function highlightExecutingCard(idx) {
+            unhighlightCards();
+            const card = document.getElementById(`cmd-card-${idx}`);
+            if (card) {
+                card.classList.add('executing-cmd');
+                card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        function unhighlightCards() {
+            const cards = document.querySelectorAll('#queue-container > div');
+            cards.forEach(c => c.classList.remove('executing-cmd'));
+        }
+
+        function toggleControls(enabled) {
+            document.getElementById('run-btn').disabled = !enabled;
+            document.getElementById('reset-btn').disabled = !enabled;
+            document.getElementById('run-btn').style.opacity = enabled ? "1" : "0.5";
+        }
+
+        // SCIENCE LOGIC & COMMAND ACTIONS
+        function handleInspectCommand() {
+            const mission = MISSIONS[currentMissionIdx];
+            const item = mission.items.find(it => it.r === playerPos.r && it.c === playerPos.c);
+            if (item) {
+                openModal(item.icon, item.name, item.category, item.detail);
+            } else {
+                showToast("ช่องนี้ไม่มีวัตถุให้สังเกต");
+            }
+        }
+
+        function handleSelectCommand() {
+            const mission = MISSIONS[currentMissionIdx];
+            const item = mission.items.find(it => it.r === playerPos.r && it.c === playerPos.c);
+
+            if (!item) {
+                playSound('error');
+                showToast("ไม่มีวัตถุในช่องนี้ให้เลือก");
+                return;
+            }
+
+            // MISSION 1 & 3: Standard target selection
+            if (mission.id === 0 || mission.id === 2) {
+                if (mission.targetsToCollect.includes(item.id)) {
+                    if (!collectedItemIds.has(item.id)) {
+                        collectedItemIds.add(item.id);
+                        playSound('collect');
+                        showToast(`ถูกต้อง! เลือก ${item.name} (${item.category}) ✨`);
+                    } else {
+                        showToast(`เคยเลือก ${item.name} ไปแล้วครับ`);
+                    }
+                } else {
+                    playSound('error');
+                    showToast(`❌ ${item.name} ไม่ใช่คำตอบที่ถูกต้องตามเงื่อนไขวิทยาศาสตร์!`);
+                }
+            } 
+            // MISSION 2: Classification (Pick up & Drop off in baskets)
+            else if (mission.id === 1) {
+                if (item.type === 'veg' || item.type === 'fruit') {
+                    if (currentCarriedItem) {
+                        showToast(`คุณกำลังถือ ${currentCarriedItem.name} อยู่ วางลงตะกร้าก่อนนะ`);
+                    } else {
+                        currentCarriedItem = item;
+                        playSound('collect');
+                        updateCarriedDisplay();
+                        showToast(`เก็บ ${item.name} ใส่กระเป๋าแล้ว เดินไปหาตะกร้าสิ!`);
+                    }
+                } else if (item.type === 'basket_veg') {
+                    if (currentCarriedItem && currentCarriedItem.type === 'veg') {
+                        playSound('collect');
+                        showToast(`เก่งมาก! ใส่ ${currentCarriedItem.name} ลงในตะกร้าผักถูกต้อง 🎉`);
+                        currentCarriedItem = null;
+                        updateCarriedDisplay();
+                        
+                        // Check if both veggies delivered
+                        collectedItemIds.add('veg_basket');
+                    } else {
+                        playSound('error');
+                        showToast(`❌ ต้องนำ "ผัก" มาใส่ในตะกร้านี้นะครับ`);
+                    }
+                } else if (item.type === 'basket_fruit') {
+                    if (currentCarriedItem && currentCarriedItem.type === 'fruit') {
+                        playSound('collect');
+                        showToast(`เก่งมาก! ใส่ ${currentCarriedItem.name} ลงในตะกร้าผลไม้ถูกต้อง 🎉`);
+                        currentCarriedItem = null;
+                        updateCarriedDisplay();
+                        
+                        collectedItemIds.add('fruit_basket');
+                    } else {
+                        playSound('error');
+                        showToast(`❌ ต้องนำ "ผลไม้" มาใส่ในตะกร้านี้นะครับ`);
+                    }
+                }
+            } 
+            // MISSION 4: Science Sequence (Shadow Formation)
+            else if (mission.id === 3) {
+                const nextRequired = mission.requiredSequence[sequenceProgress.length];
+                if (item.id === nextRequired) {
+                    sequenceProgress.push(item.id);
+                    collectedItemIds.add(item.id);
+                    playSound('collect');
+                    showToast(`ถูกต้อง! ขั้นที่ ${sequenceProgress.length}: ${item.name}`);
+                } else {
+                    playSound('error');
+                    showToast(`❌ ลำดับผิด! ลำดับการเกิดเงาคือ 1.แสง ➔ 2.วัตถุ ➔ 3.เงา (ใช้บัตร 🔄 แก้ไขโค้ดนะ)`);
+                }
+            }
+
+            updateTargetCounter();
+        }
+
+        function checkWinCondition() {
+            const mission = MISSIONS[currentMissionIdx];
+            if (mission.mode === 'classify') {
+                return collectedItemIds.has('veg_basket') && collectedItemIds.has('fruit_basket');
+            } else if (mission.mode === 'sequence') {
+                return sequenceProgress.length === mission.requiredSequence.length;
+            } else {
+                return mission.targetsToCollect.every(target => collectedItemIds.has(target));
+            }
+        }
+
+        function handleWin() {
+            playSound('win');
+            
+            // Calculate Stars based on command length
+            const mission = MISSIONS[currentMissionIdx];
+            const usedCmds = commandsQueue.length;
+            let stars = 1;
+            if (usedCmds <= mission.maxCmds * 0.75) {
+                stars = 3;
+            } else if (usedCmds <= mission.maxCmds) {
+                stars = 2;
+            }
+
+            missionStars[currentMissionIdx] = Math.max(missionStars[currentMissionIdx], stars);
+            totalStarsEarned = missionStars.reduce((a, b) => a + b, 0);
+            document.getElementById('total-stars').innerText = totalStarsEarned;
+
+            // Render Stars HTML
+            let starsHTML = '';
+            for (let i = 0; i < 3; i++) {
+                starsHTML += `<span class="${i < stars ? 'text-amber-400 scale-110' : 'text-slate-600'}">⭐</span>`;
+            }
+            document.getElementById('win-stars').innerHTML = starsHTML;
+
+            document.getElementById('win-stats').innerHTML = `
+                📌 <strong>สรุปภารกิจ:</strong><br>
+                • จำนวนบัตรคำสั่งที่ใช้: <strong>${usedCmds}</strong> บัตร<br>
+                • ทักษะที่ได้เรียนรู้: สังเกต, คิดเป็นขั้นตอน และแก้ไขโค้ดวิทยาศาสตร์<br>
+                • ดาวที่ได้: <strong>${stars}/3 ดาว</strong>
+            `;
+
+            // Next mission button text
+            const nextBtn = document.getElementById('next-mission-btn');
+            if (currentMissionIdx < MISSIONS.length - 1) {
+                nextBtn.innerText = "ภารกิจถัดไป ➡️";
+                nextBtn.onclick = () => { closeWinModal(); selectMission(currentMissionIdx + 1); };
+            } else {
+                nextBtn.innerText = "สำเร็จครบทุกภารกิจ! 🏆";
+                nextBtn.onclick = () => { closeWinModal(); selectMission(0); };
+            }
+
+            document.getElementById('win-backdrop').classList.remove('hidden');
+        }
+
+        // MODAL HELPERS
+        function openModal(icon, title, category, body) {
+            document.getElementById('modal-icon').innerText = icon;
+            document.getElementById('modal-title').innerText = title;
+            document.getElementById('modal-category').innerText = category;
+            document.getElementById('modal-body').innerText = body;
+            document.getElementById('modal-backdrop').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            playSound('click');
+            document.getElementById('modal-backdrop').classList.add('hidden');
+        }
+
+        function closeWinModal() {
+            document.getElementById('win-backdrop').classList.add('hidden');
+        }
+
+        function openHelpModal() {
+            playSound('click');
+            document.getElementById('help-modal').classList.remove('hidden');
+        }
+
+        function closeHelpModal() {
+            playSound('click');
+            document.getElementById('help-modal').classList.add('hidden');
+        }
+
+        // TOAST NOTIFICATION UTILITY
+        function showToast(msg) {
+            const existingToast = document.getElementById('game-toast');
+            if (existingToast) existingToast.remove();
+
+            const toast = document.createElement('div');
+            toast.id = 'game-toast';
+            toast.className = 'fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-900/95 border-2 border-amber-400 text-amber-200 px-4 py-2.5 rounded-2xl shadow-2xl z-50 text-xs sm:text-sm font-semibold flex items-center gap-2 animate-bounce-short pointer-events-none';
+            toast.innerHTML = `<span>🧪</span> <span>${msg}</span>`;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                if (toast) toast.remove();
+            }, 2600);
+        }
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>
